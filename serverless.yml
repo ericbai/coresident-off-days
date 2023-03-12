@@ -1,0 +1,28 @@
+service: coresident-off-days
+frameworkVersion: "3"
+
+provider:
+  name: aws
+  runtime: nodejs16.x
+  profile: off-days-tracker
+  environment:
+    TABLE_BLOCKS: Blocks
+    TABLE_SCHEDULES: Schedules
+    TABLE_TEMPLATES: Templates
+    TABLE_TEMPLATES_WBG: WeinbergTemplates
+    TABLE_SERVICE_REGEX: ServiceRegex
+    BOUND_MIN_DATE: 2023-03-02T00:00:00Z
+    BOUND_MAX_DATE: 2023-06-30T23:59:59Z
+    FORMAT_DATE: YYYY-MM-DD
+    POSITION_OFF: OFF
+    MAYBE_OFF_SERVICES: Other
+    EXP_PLACEHOLDER_POSITION: ":position"
+
+functions:
+  api:
+    handler: index.handler
+    events:
+      - httpApi: "*"
+
+plugins:
+  - serverless-offline

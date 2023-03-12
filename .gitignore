@@ -1,0 +1,6 @@
+node_modules
+.serverless
+data
+*.tmp
+*.log
+*.DS_Store
