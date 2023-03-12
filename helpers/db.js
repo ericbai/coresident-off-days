@@ -1,6 +1,12 @@
 import { QueryCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
 import StatusError from "./status-error.js";
 
+/**
+ * Gets basic information about a block given a date
+ * @param  {DynamoDBDocumentClient} db      Db client
+ * @param  {DayJS} thisDay                  DayJS object
+ * @return {Object}                         With keys `blockName`, `isA`, and `dayNumber`
+ */
 export async function getBlockInfoForDate(db, thisDay) {
     const params = {
         TableName: process.env.TABLE_BLOCKS,
@@ -20,6 +26,12 @@ export async function getBlockInfoForDate(db, thisDay) {
     };
 }
 
+/**
+ * Gets schedule assignments for a given block name
+ * @param  {DynamoDBDocumentClient} db      DB client
+ * @param  {String} blockName               Block's name (e.g., 9A, 10B, etc)
+ * @return {Object}                         Keys are intern names, values are assigned rotation and position
+ */
 export async function getScheduleForBlockName(db, blockName) {
     const params = {
         TableName: process.env.TABLE_SCHEDULES,
@@ -36,6 +48,15 @@ export async function getScheduleForBlockName(db, blockName) {
     );
 }
 
+/**
+ * Get rotations that have a schedule off day for a given date
+ * @param  {DynamoDBDocumentClient}  db        DB client
+ * @param  {DayJS}  thisDay                    DayJS date object
+ * @param  {Boolean} isA                       If the current block is an "A" or "B" block
+ * @param  {Integer}  dayNumber                How many days into this block the current date is
+ * @return {Object}                            Keys are service name (e.g., CCU),
+ *                                                  values are position (e.g., A, Nights)
+ */
 export async function getRotationsOffForBlockInfo(db, thisDay, isA, dayNumber) {
     const [offRotations, wbgOffRotations] = await Promise.all([
         getRotationsOffExceptWeinberg(db, isA, dayNumber),
@@ -47,6 +68,15 @@ export async function getRotationsOffForBlockInfo(db, thisDay, isA, dayNumber) {
     );
 }
 
+/**
+ * Get the regular expressions corresponding to the categories we will eventually return
+ * @param  {DynamoDBDocumentClient} db           DB client
+ * @param  {Object} offRotations                 Rotations that scheduled for an off day, keys are service, values are position
+ * @return {Object}                              Keys are categories that the return object should mirror,
+ *                                                    values are RegExps that should be used to test
+ *                                                    assignments to determine whether an intern should
+ *                                                    be grouped into the `key` category
+ */
 export async function getRegexForOffRotations(db, offRotations) {
     // manually build out the filter expression with sequential named keys
     const maybeOffServiceKey = process.env.MAYBE_OFF_SERVICES,
@@ -84,6 +114,14 @@ export async function getRegexForOffRotations(db, offRotations) {
 // Helpers
 // -------
 
+/**
+ * Get rotations scheduled for an off day, except for Weinberg rotations
+ * @param  {DynamoDBDocumentClient}  db        DB client
+ * @param  {Boolean} isA                       If the current block is an "A" or "B" block
+ * @param  {Integer}  dayNumber                How many days into this block the current date is
+ * @return {Object}                            Keys are service name (e.g., The O, Brancati, CCU),
+ *                                                  values are position (e.g., A, B, C, Nights)
+ */
 async function getRotationsOffExceptWeinberg(db, isA, dayNumber) {
     const params = {
         TableName: process.env.TABLE_TEMPLATES,
@@ -107,6 +145,13 @@ async function getRotationsOffExceptWeinberg(db, isA, dayNumber) {
     return offRotations;
 }
 
+/**
+ * Get Weinberg rotations scheduled for an off day
+ * @param  {DynamoDBDocumentClient}  db        DB client
+ * @param  {DayJS}  thisDay                    DayJS date object
+ * @return {Object}                            Keys are service name (e.g., MTL, Leuks),
+ *                                                  values are position (always Days for interns)
+ */
 async function getWeinbergRotationsOff(db, thisDay) {
     const params = {
         TableName: process.env.TABLE_TEMPLATES_WBG,
@@ -122,6 +167,8 @@ async function getWeinbergRotationsOff(db, thisDay) {
     if (numTemplatesFound === 0) {
         throw new StatusError(404, "Could not find any Weinberg schedules for given date");
     }
+    // Because WBG templates are in a different format, need to transform the output to an array
+    // of Objects with `service` and `position` keys to match the format for the other rotations
     return Object.keys(templates[0]).reduce(
         (array, dateOrServiceKey) => (
             templates[0][dateOrServiceKey] === process.env.POSITION_OFF &&

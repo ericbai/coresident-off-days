@@ -16,8 +16,10 @@ import StatusError from "./helpers/status-error.js";
 const app = express();
 const db = DynamoDBDocumentClient.from(new DynamoDBClient());
 
+// Load middleware
 app.use(express.json());
 
+// Given date within supported range, returns the residents that are off and those who are maybe off
 app.get("/residents/:date", async (req, res) => {
   try {
     const thisDay = tryBuildDayFromDate(req.params.date),
@@ -48,5 +50,8 @@ app.get("/residents/:date", async (req, res) => {
     }
   }
 });
+
+// Handles not found routes
+app.use((req, res, next) => res.status(404).json({ error: "Not found" }));
 
 export const handler = serverless(app);
