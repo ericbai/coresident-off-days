@@ -4,7 +4,8 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "start": "AWS_PROFILE=off-days-tracker serverless offline start --reloadHandler"
+    "start": "AWS_PROFILE=off-days-tracker serverless offline start --reloadHandler",
+    "deploy": "serverless deploy --aws-profile=sls-deployer"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.289.0",

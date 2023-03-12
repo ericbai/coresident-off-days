@@ -6,6 +6,13 @@ provider:
   region: us-east-1
   runtime: nodejs16.x
   profile: off-days-tracker
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action:
+            - dynamodb:*
+          Resource: "*"
   environment:
     TABLE_BLOCKS: Blocks
     TABLE_SCHEDULES: Schedules
