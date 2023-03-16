@@ -6,8 +6,13 @@ This is a simple Node Express API service, backed by DynamoDB database, running 
 
 ## Commands
 
-- Install: `npm install`
-- Local development: `npm start`
-- Deployment: `npm run deploy`
+-   Install: `npm install`
+-   Local development: `npm start`
+-   Deployment
+    -   Entire app: `npm run deploy`
+    -   Single function: `npm run deploy-function <function name>`
 
-Assumes two AWS profiles: `off-days-tracker` during local development and `sls-deployer` during deployment
+## Local environment requirements
+
+-   Two AWS profiles: `off-days-tracker` during local development and `sls-deployer` during deployment
+-   A file called `.env` in the project root with an environment variable `DEFAULT_PIN` with default PIN used for validate requests

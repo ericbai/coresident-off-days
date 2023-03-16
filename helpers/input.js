@@ -17,9 +17,9 @@ export function tryBuildDayFromDate(date) {
     } else if (day.isBefore(minDay) || day.isAfter(maxDay)) {
         throw new StatusError(
             400,
-            `The date must be between ${minDay.format(
+            `The date must be between ${minDay.format(displayFormat)} and ${maxDay.format(
                 displayFormat
-            )} (exclusive) and ${maxDay.format(displayFormat)} (inclusive)`
+            )} (inclusive)`
         );
     }
     return day;

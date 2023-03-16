@@ -1,6 +1,10 @@
 service: coresident-off-days
 frameworkVersion: "3"
 
+ # with useDotenv: true, serverless loads your variables from the `.env` file and puts them in the
+ # `env` variable so you can access them using `env:<name>`
+useDotenv: true
+
 provider:
   name: aws
   region: us-east-1
@@ -25,6 +29,7 @@ provider:
     POSITION_OFF: OFF
     MAYBE_OFF_SERVICES: Other
     EXP_PLACEHOLDER_POSITION: ":position"
+    DEFAULT_PIN: ${env:DEFAULT_PIN}
 
 functions:
   api:
