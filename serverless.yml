@@ -1,8 +1,8 @@
 service: coresident-off-days
 frameworkVersion: "3"
 
- # with useDotenv: true, serverless loads your variables from the `.env` file and puts them in the
- # `env` variable so you can access them using `env:<name>`
+# with useDotenv: true, serverless loads your variables from the `.env` file and puts them in the
+# `env` variable so you can access them using `env:<name>`
 useDotenv: true
 
 provider:
@@ -21,14 +21,22 @@ provider:
     TABLE_BLOCKS: Blocks
     TABLE_SCHEDULES: Schedules
     TABLE_TEMPLATES: Templates
-    TABLE_TEMPLATES_WBG: WeinbergTemplates
+    TABLE_TEMPLATES_BV: BayviewTemplates
     TABLE_SERVICE_REGEX: ServiceRegex
-    BOUND_MIN_DATE: 2023-03-02T00:00:00Z
-    BOUND_MAX_DATE: 2023-06-30T23:59:59Z
     FORMAT_DATE: YYYY-MM-DD
-    POSITION_OFF: OFF
-    MAYBE_OFF_SERVICES: Other
+    SCHEDULED_OFF: OFF
+    SCHEDULED_MAYBE_OFF: MAYBE
+    ROLE_INTERN: Intern
+    ROLE_RESIDENT: Resident
+    SCHEDULE_KEY_ROLE: role
+    SCHEDULE_KEY_ASSIGNMENT: assignment
+    CLASSIFICATION_KEY_OFF: off
+    CLASSIFICATION_KEY_MAYBE_OFF: maybeOff
+    CLASSIFICATION_KEY_NOT_SURE: notSure
+    SERVICE_BAYVIEW_ICU: "Bayview ICU"
     EXP_PLACEHOLDER_POSITION: ":position"
+    BOUND_MIN_DATE: 2023-07-27T00:00:00Z
+    BOUND_MAX_DATE: 2023-12-11T23:59:59Z
     DEFAULT_PIN: ${env:DEFAULT_PIN}
 
 functions:

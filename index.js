@@ -4,14 +4,9 @@ import cors from "cors";
 import dayjs from "dayjs";
 import express from "express";
 import serverless from "serverless-http";
-import {
-  getBlockInfoForDate,
-  getRegexForOffRotations,
-  getRotationsOffForBlockInfo,
-  getScheduleForBlockName,
-} from "./helpers/db.js";
+import { getBlockInfoByRoleForDate } from "./helpers/db.js";
 import { tryBuildDayFromDate } from "./helpers/input.js";
-import { buildError, classifySchedulesByStatus } from "./helpers/output.js";
+import { buildError, classifySchedulesForRoleAndBlockInfo } from "./helpers/output.js";
 import StatusError from "./helpers/status-error.js";
 
 const app = express();
@@ -36,28 +31,42 @@ app.get("/schedule-status/:date", async (req, res) => {
   try {
     // 1. get basic information given valid date
     const thisDay = tryBuildDayFromDate(req.params.date),
-      { blockName, isA, dayNumber } = await getBlockInfoForDate(db, thisDay);
-    // 2. fetch resident schedules and rotations that have scheduled off day
-    const [schedules, offRotations] = await Promise.all([
-      getScheduleForBlockName(db, blockName),
-      getRotationsOffForBlockInfo(db, thisDay, isA, dayNumber),
-    ]);
-    // 3. build regex for each category (off vs maybe off) and group residents into these categories
-    const regExpInfo = await getRegexForOffRotations(db, offRotations),
-      residentsByStatus = classifySchedulesByStatus(regExpInfo, schedules),
-      fetchedDate = thisDay.format(process.env.FORMAT_DATE),
+      blockInfoByRole = await getBlockInfoByRoleForDate(db, thisDay);
+    // 2. For each role, classify schedules by status (off, maybe off, not sure) and then aggregate
+    // across roles into a unified `schedulesByStatus` object
+    const schedulesByStatus = {
+      [process.env.CLASSIFICATION_KEY_OFF]: [],
+      [process.env.CLASSIFICATION_KEY_MAYBE_OFF]: [],
+      [process.env.CLASSIFICATION_KEY_NOT_SURE]: [],
+    };
+    // for each role and it's associate block info...
+    for (const [role, blockInfo] of Object.entries(blockInfoByRole)) {
+      // ...classify schedules into classification keys...
+      const classifiedSchedules = await classifySchedulesForRoleAndBlockInfo(
+        db,
+        thisDay,
+        role,
+        blockInfo
+      );
+      // ...and then merge into the aggregate `schedulesByStatus` object
+      for (classificationKey of Object.keys(schedulesByStatus)) {
+        schedulesByStatus[classificationKey].push(
+          ...(classifiedSchedules[classificationKey] || [])
+        );
+      }
+    }
+    // 3. Build JSON response object in expected format
+    const fetchedDate = thisDay.format(process.env.FORMAT_DATE),
       minDate = dayjs(process.env.BOUND_MIN_DATE).format(process.env.FORMAT_DATE),
       maxDate = dayjs(process.env.BOUND_MAX_DATE).format(process.env.FORMAT_DATE);
-    // 4. Build JSON response object in expected format
     res.json({
       "schedule-status": {
         id: fetchedDate,
         fetchedDate,
         minDate,
         maxDate,
-        blockName,
-        dayNumber,
-        ...residentsByStatus,
+        blockInfoByRole,
+        ...schedulesByStatus,
       },
     });
   } catch (error) {
