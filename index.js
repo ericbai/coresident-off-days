@@ -37,7 +37,7 @@ app.get("/schedule-status/:date", async (req, res) => {
     const schedulesByStatus = {
       [process.env.CLASSIFICATION_KEY_OFF]: [],
       [process.env.CLASSIFICATION_KEY_MAYBE_OFF]: [],
-      [process.env.CLASSIFICATION_KEY_NOT_SURE]: [],
+      [process.env.CLASSIFICATION_KEY_LIKELY_NOT_OFF]: [],
     };
     // for each role and it's associate block info...
     for (const [role, blockInfo] of Object.entries(blockInfoByRole)) {
@@ -49,7 +49,7 @@ app.get("/schedule-status/:date", async (req, res) => {
         blockInfo
       );
       // ...and then merge into the aggregate `schedulesByStatus` object
-      for (classificationKey of Object.keys(schedulesByStatus)) {
+      for (const classificationKey of Object.keys(schedulesByStatus)) {
         schedulesByStatus[classificationKey].push(
           ...(classifiedSchedules[classificationKey] || [])
         );

@@ -1,12 +1,12 @@
 {
   "name": "coresident-off-days-backend",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Backend for determining coresident off days",
   "type": "module",
   "scripts": {
-    "start": "AWS_PROFILE=off-days-tracker serverless offline start --reloadHandler",
-    "deploy": "serverless deploy --aws-profile=sls-deployer ",
-    "deploy-function": "serverless deploy function --aws-profile=sls-deployer --function"
+    "start": "AWS_PROFILE=off-days-tracker npx serverless offline start --reloadHandler",
+    "deploy": "npx serverless deploy --aws-profile=sls-deployer ",
+    "deploy-function": "npx serverless deploy function --aws-profile=sls-deployer --function"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.289.0",
@@ -14,6 +14,7 @@
     "cors": "^2.8.5",
     "dayjs": "^1.11.7",
     "express": "^4.18.2",
+    "serverless": "3.28.1",
     "serverless-http": "^3.1.1"
   },
   "devDependencies": {

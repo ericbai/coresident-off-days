@@ -57,11 +57,11 @@ export async function classifySchedulesForRoleAndBlockInfo(db, thisDay, role, bl
  */
 function classifySchedulesByStatus(regExpInfo, schedules) {
     const classifiedSchedules = Object.keys(regExpInfo).reduce(
-        (obj, classificationKey) => (obj[classificationKey] = []),
+        (obj, classificationKey) => ((obj[classificationKey] = []), obj),
         Object.create(null)
     );
     // add a "not sure" classification key to catch the schedules that don't match anything
-    classifiedSchedules[CLASSIFICATION_KEY_NOT_SURE] = [];
+    classifiedSchedules[process.env.CLASSIFICATION_KEY_LIKELY_NOT_OFF] = [];
     // then, for each name and assignment...
     for (const [
         name,
@@ -70,7 +70,7 @@ function classifySchedulesByStatus(regExpInfo, schedules) {
             [process.env.SCHEDULE_KEY_ASSIGNMENT]: assignment,
         },
     ] of Object.entries(schedules)) {
-        let classificationKeyToAddTo = CLASSIFICATION_KEY_NOT_SURE;
+        let classificationKeyToAddTo = process.env.CLASSIFICATION_KEY_LIKELY_NOT_OFF;
         //...loop through each classification key (e.g., off, maybe off) and corresponding regular expression...
         for (const [classificationKey, regex] of Object.entries(regExpInfo)) {
             //...if the assignment matches the corresponding RegExp then add to this classification key
@@ -83,8 +83,9 @@ function classifySchedulesByStatus(regExpInfo, schedules) {
     }
     // Sort all matched schedules within a classification key by name in descending alphabetical order
     return Object.entries(classifiedSchedules).reduce(
-        (obj, [classificationKey, matchedSchedules]) =>
-            (obj[classificationKey] = sortSchedulesByName(matchedSchedules)),
+        (obj, [classificationKey, matchedSchedules]) => (
+            (obj[classificationKey] = sortSchedulesByName(matchedSchedules)), obj
+        ),
         Object.create(null)
     );
 }
@@ -95,5 +96,7 @@ function classifySchedulesByStatus(regExpInfo, schedules) {
  * @return {Array}            New array of schedules sorted alphabetically by their `name` key
  */
 function sortSchedulesByName(schedules) {
-    return schedules.toSorted(({ name: n1 }, { name: n2 }) => (n1 === n2 ? 0 : n1 > n2 ? 1 : -1));
+    // Note: `toSorted` is currently browser only and only supported in Node.JS 20+
+    // see https://stackoverflow.com/a/76006439
+    return [...schedules].sort(({ name: n1 }, { name: n2 }) => (n1 === n2 ? 0 : n1 > n2 ? 1 : -1));
 }
