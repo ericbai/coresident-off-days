@@ -5,7 +5,7 @@ import dayjs from "dayjs";
 import express from "express";
 import serverless from "serverless-http";
 import { getBlockInfoByRoleForDate } from "./helpers/db.js";
-import { humanReadableMinDate, tryBuildDayFromDate } from "./helpers/input.js";
+import { tryBuildDayFromDate } from "./helpers/input.js";
 import {
   buildError,
   classifySchedulesForRoleAndBlockInfo,
@@ -61,7 +61,10 @@ app.get("/schedule-status/:date", async (req, res) => {
     }
     // 3. Build JSON response object in expected format
     const fetchedDate = thisDay.format(process.env.FORMAT_DATE),
-      minDate = humanReadableMinDate(),
+      // Note that the min date is EXCLUSIVE meaning the first available min date is actually after
+      // this provided date
+      minDate = dayjs(process.env.BOUND_MIN_DATE).format(process.env.FORMAT_DATE),
+      // The max date is INCLUSIVE meaning that this date is actually the last available date
       maxDate = dayjs(process.env.BOUND_MAX_DATE).format(process.env.FORMAT_DATE);
     res.json({
       "schedule-status": {

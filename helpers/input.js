@@ -25,11 +25,14 @@ export function tryBuildDayFromDate(date) {
     return day;
 }
 
+// Helpers
+// -------
+
 /**
  * The min date is an exclusive date (meaning that the first available date is the date AFTER the min date).
  * This is confusing for humans, so we add 1 day and then format to our standard format `
  * @return {String} Formatted min-date in standard format
  */
-export function humanReadableMinDate() {
+function humanReadableMinDate() {
     return dayjs(process.env.BOUND_MIN_DATE).add(1, "day").format(process.env.FORMAT_DATE);
 }
