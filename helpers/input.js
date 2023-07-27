@@ -17,10 +17,19 @@ export function tryBuildDayFromDate(date) {
     } else if (day.isBefore(minDay) || day.isAfter(maxDay)) {
         throw new StatusError(
             400,
-            `The date must be between ${minDay.format(displayFormat)} and ${maxDay.format(
+            `The date must be between ${humanReadableMinDate()} and ${maxDay.format(
                 displayFormat
-            )} (inclusive)`
+            )}.`
         );
     }
     return day;
+}
+
+/**
+ * The min date is an exclusive date (meaning that the first available date is the date AFTER the min date).
+ * This is confusing for humans, so we add 1 day and then format to our standard format `
+ * @return {String} Formatted min-date in standard format
+ */
+export function humanReadableMinDate() {
+    return dayjs(process.env.BOUND_MIN_DATE).add(1, "day").format(process.env.FORMAT_DATE);
 }

@@ -44,6 +44,21 @@ export async function classifySchedulesForRoleAndBlockInfo(db, thisDay, role, bl
     return classifySchedulesByStatus(regExpInfo, schedules);
 }
 
+/**
+ * Sort all matched schedules within a classification key by name in descending alphabetical order`
+ * @param  {Object} classifiedSchedules Keys "off", "maybeOff", "notSure"  (see CLASSIFICATION_KEY_* in `serverless.yml),
+ *                                            values are arrays of objects with keys `name`, `role`, and `assignment`
+ * @return {Object}                     Copy of the passed in object with values sorted alphabetically by `name`
+ */
+export function sortClassifiedSchedulesByName(classifiedSchedules) {
+    return Object.entries(classifiedSchedules).reduce(
+        (obj, [classificationKey, matchedSchedules]) => (
+            (obj[classificationKey] = sortSchedulesByName(matchedSchedules)), obj
+        ),
+        Object.create(null)
+    );
+}
+
 // Helpers
 // -------
 
@@ -81,13 +96,7 @@ function classifySchedulesByStatus(regExpInfo, schedules) {
         // add to whatever classification key match or the default "not sure" classification
         classifiedSchedules[classificationKeyToAddTo].push({ name, role, assignment });
     }
-    // Sort all matched schedules within a classification key by name in descending alphabetical order
-    return Object.entries(classifiedSchedules).reduce(
-        (obj, [classificationKey, matchedSchedules]) => (
-            (obj[classificationKey] = sortSchedulesByName(matchedSchedules)), obj
-        ),
-        Object.create(null)
-    );
+    return classifiedSchedules;
 }
 
 /**

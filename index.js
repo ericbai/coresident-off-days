@@ -5,8 +5,12 @@ import dayjs from "dayjs";
 import express from "express";
 import serverless from "serverless-http";
 import { getBlockInfoByRoleForDate } from "./helpers/db.js";
-import { tryBuildDayFromDate } from "./helpers/input.js";
-import { buildError, classifySchedulesForRoleAndBlockInfo } from "./helpers/output.js";
+import { humanReadableMinDate, tryBuildDayFromDate } from "./helpers/input.js";
+import {
+  buildError,
+  classifySchedulesForRoleAndBlockInfo,
+  sortClassifiedSchedulesByName,
+} from "./helpers/output.js";
 import StatusError from "./helpers/status-error.js";
 
 const app = express();
@@ -57,7 +61,7 @@ app.get("/schedule-status/:date", async (req, res) => {
     }
     // 3. Build JSON response object in expected format
     const fetchedDate = thisDay.format(process.env.FORMAT_DATE),
-      minDate = dayjs(process.env.BOUND_MIN_DATE).format(process.env.FORMAT_DATE),
+      minDate = humanReadableMinDate(),
       maxDate = dayjs(process.env.BOUND_MAX_DATE).format(process.env.FORMAT_DATE);
     res.json({
       "schedule-status": {
@@ -65,8 +69,9 @@ app.get("/schedule-status/:date", async (req, res) => {
         fetchedDate,
         minDate,
         maxDate,
-        blockInfoByRole,
-        ...schedulesByStatus,
+        internBlockInfo: blockInfoByRole[process.env.ROLE_INTERN],
+        residentBlockInfo: blockInfoByRole[process.env.ROLE_RESIDENT],
+        ...sortClassifiedSchedulesByName(schedulesByStatus),
       },
     });
   } catch (error) {
